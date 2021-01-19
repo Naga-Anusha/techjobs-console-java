@@ -7,9 +7,7 @@ import org.apache.commons.csv.CSVRecord;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by LaunchCode
@@ -20,6 +18,7 @@ public class JobData {
     private static Boolean isDataLoaded = false;
 
     private static ArrayList<HashMap<String, String>> allJobs;
+    private static ArrayList<HashMap<String, String>> allJobsCopy;
 
     /**
      * Fetch list of all values from loaded data,
@@ -35,13 +34,14 @@ public class JobData {
 
         ArrayList<String> values = new ArrayList<>();
 
-        for (HashMap<String, String> row : allJobs) {
+        for (HashMap<String, String> row : allJobsCopy) {
             String aValue = row.get(field);
 
             if (!values.contains(aValue)) {
                 values.add(aValue);
             }
         }
+        Collections.sort(values);
 
         return values;
     }
@@ -51,7 +51,7 @@ public class JobData {
         // load data, if not already loaded
         loadData();
 
-        return allJobs;
+        return allJobsCopy;
     }
 
     /**
@@ -72,11 +72,11 @@ public class JobData {
 
         ArrayList<HashMap<String, String>> jobs = new ArrayList<>();
 
-        for (HashMap<String, String> row : allJobs) {
+        for (HashMap<String, String> row : allJobsCopy) {
 
             String aValue = row.get(column);
 
-            if (aValue.contains(value)) {
+            if ((aValue.toLowerCase()).contains(value.toLowerCase())) {
                 jobs.add(row);
             }
         }
@@ -84,6 +84,30 @@ public class JobData {
         return jobs;
     }
 
+    /* findByValue function which searches by search term
+     */
+
+    public static ArrayList<HashMap<String, String>> findByValue(String value) {
+
+        //Load data, if not already loaded
+
+        loadData();
+
+        ArrayList<HashMap<String, String>> jobs = new ArrayList<>();
+        for (HashMap<String, String> row : allJobsCopy) {
+            for(Map.Entry<String, String> column : row.entrySet()){
+                String aValue = column.getValue();
+                if ((aValue.toLowerCase()).contains(value.toLowerCase())) {
+                    if(!jobs.contains(row)){
+                        jobs.add(row);
+                    }
+
+                }
+            }
+        }
+
+        return jobs;
+    }
     /**
      * Read in data from a CSV file and store it in a list
      */
@@ -114,6 +138,8 @@ public class JobData {
                 }
 
                 allJobs.add(newJob);
+                allJobsCopy = (ArrayList<HashMap<String, String>>) allJobs.clone();
+
             }
 
             // flag the data as loaded, so we don't do it twice
